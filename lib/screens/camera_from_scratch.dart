@@ -6,8 +6,8 @@ import 'package:video_player/video_player.dart';
 import 'dart:io';
 
 class CameraFromScratch extends StatefulWidget {
-  final void Function(String path, num fileNum) setFilePath;
-  final num fileNumber;
+  final void Function(String path, int fileNum) setFilePath;
+  final int fileNumber;
   const CameraFromScratch({required this.setFilePath, required this.fileNumber, Key? key}) : super(key: key);
 
   @override

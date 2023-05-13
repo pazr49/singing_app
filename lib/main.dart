@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/screens/home_screen.dart';
+import 'package:my_app/screens/song_project_screen.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -13,6 +13,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return HomeScreen();
+    return SongProjectScreen();
   }
 }
