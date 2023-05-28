@@ -19,6 +19,9 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
   List<String> filePaths = [];
   List<SongPart> songParts = [];
   Song song = Song(id: '', name: '', numParts: 0);
+  bool initLoading = true;
+  bool failedConnection = false;
+  bool uploadingFiles = false;
 
   @override
   void initState() {
@@ -29,25 +32,46 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
 
   // function to fetch the song from the server
   void _fetchSong() async {
-    Song fetchedSong = await fetchSong("123");
-    setState(() {
-      song = fetchedSong;
-    });
+    try {
+      Song fetchedSong = await fetchSong("123");
+      setState(() {
+        song = fetchedSong;
+      });
+    }
+    catch (e) {
+      setState(() {
+        initLoading = false;
+        failedConnection = true;
+      });
+      print(e);
+    }
   }
 
   // function to fetch the song parts from the server
   void _fetchSongParts() async {
-    List<SongPart> fetchedSongParts = await fetchSongParts("123");
-    setState(() {
-      songParts = fetchedSongParts;
-      songPartCards = _buildSongPartCards();
-    });
+    try {
+      List<SongPart> fetchedSongParts = await fetchSongParts("123");
+      setState(() {
+        songParts = fetchedSongParts;
+        songPartCards = _buildSongPartCards();
+        initLoading = false;
+      });
+    }
+    catch (e) {
+      print("oeirgoeirjgo");
+      setState(() {
+        initLoading = false;
+        failedConnection = true;
+      });
+       print(e);
+   }
   }
 
   // function to build the song part cards
   void setFilePath(String path, int fileNumber) {
     setState(() {
-    filePaths[fileNumber -1] = path;
+      filePaths[fileNumber -1] = path;
+      songPartCards = _buildSongPartCards();
     });
   }
 
@@ -57,44 +81,46 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
       context,
       MaterialPageRoute(builder: (context) =>
           CameraFromScratch(
+            fileURL: songParts[fileNumber - 1].musicURL,
             fileNumber: fileNumber,
             setFilePath: setFilePath,)),
     );
   }
 
-  // check all elements in filePaths are not empty
-  bool _checkFilePaths() {
-    for (var path in filePaths) {
-      if (path == '') {
-        return false;
-      }
-    }
-    return true;
-  }
-
 // function to upload files to the server
   Future<void> _uploadFiles() async {
-    fileUploader.pingServer().then((value) {
-      print(value);
+    setState(() {
+      uploadingFiles = true;
     });
-    fileUploader.uploadFiles(List<File>.from([File(""), File("")])).then((response) {
+    fileUploader.uploadFiles(List<String>.from(filePaths)).then((response) {
       print(response);
+      setState(() {
+        uploadingFiles = false;
+      });
     });
+  }
+
+  //function to check if the files in filepaths are null
+  _checkFiles(index) {
+    if (filePaths[index] != '') {
+      return false;
+    }
+    return true;
   }
 
   // a function which will be used to create a list of SongPartCard widgets contaning the data in the songparts list
   List<Widget> _buildSongPartCards() {
     List<Widget> songPartCards = [];
     for (var i = 0; i < songParts.length; i++) {
+      filePaths.add('');
       songPartCards.add(
           SongPartCard(
               fileNumber: songParts[i].part,
               title: songParts[i].id,
-              filePath:'',
               navigateToCameraScreen: _navigateToCameraScreen,
+              isRecorded: _checkFiles(i),
           )
       );
-      filePaths.add('');
     }
     return songPartCards;
   }
@@ -105,14 +131,27 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
       appBar: AppBar(
         title: Text(song.name),
       ),
-      body: Center(
+      body:
+          // if the connection failed, display a message
+      //if loadingSongParts is true, display a loading indicator
+      initLoading ? const Center(
+        child: CircularProgressIndicator(),
+      ) :
+          failedConnection ? const Center(
+            child: Text('Failed to connect to server'),
+          ) :
+      Center(
         child: Column(
           // a list of SongPartCard widgets
           children: [
             ...songPartCards,
-            ...filePaths.map((path) => Text(path)).toList(),
+            uploadingFiles ? const Center(
+              child: CircularProgressIndicator(),
+            ) :
             ElevatedButton(
-              onPressed: _checkFilePaths() ? _uploadFiles : null,
+              // if filePaths is empty, disable the button
+              onPressed:
+                filePaths.length == songParts.length ? null : _uploadFiles,
               child: Text('Upload Files'),
             ),
           ],

@@ -13,5 +13,12 @@ class SongPart {
   final String songId;
   final String musicURL;
 
-  SongPart({required this.id, required this.part, required this.songId, required this.musicURL});
+  SongPart(
+      {
+        required this.id,
+        required this.part,
+        required this.songId,
+        required this.musicURL,
+      }
+      );
 }

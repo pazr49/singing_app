@@ -8,7 +8,8 @@ import 'dart:io';
 class CameraFromScratch extends StatefulWidget {
   final void Function(String path, int fileNum) setFilePath;
   final int fileNumber;
-  const CameraFromScratch({required this.setFilePath, required this.fileNumber, Key? key}) : super(key: key);
+  final String fileURL;
+  const CameraFromScratch({required this.fileURL, required this.setFilePath, required this.fileNumber, Key? key}) : super(key: key);
 
   @override
 _CameraFromScratchState createState() => _CameraFromScratchState();}
@@ -28,16 +29,9 @@ class _CameraFromScratchState extends State<CameraFromScratch> {
   //initializing the camera controller and the initialize controller future
   @override
   void initState() {
-    const filePath = 'assets/test.mp4';
-    final fileExists = checkFileExists(filePath);
-    if (fileExists) {
-      print('File exists at $filePath');
-    } else {
-      print('File does not exist at $filePath');
-    }
 
     super.initState();
-    _videoController = VideoPlayerController.asset(filePath)
+    _videoController = VideoPlayerController.network(widget.fileURL)
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {
