@@ -11,10 +11,34 @@ Future<Song> fetchSong(String songId) async {
     return Song(
       id: songData['id'],
       name: songData['name'],
-      numParts: songData['num_parts'],
+      numParts: songData['parts'],
+      backingTrackURL: songData['backing_track'],
     );
   } else {
     throw Exception('Failed to fetch song');
+  }
+}
+
+Future<List<Song>> fetchAllSongs() async {
+  final response = await http.get(Uri.parse('$apiUrl/songs'));
+
+  if (response.statusCode == 200) {
+    List<Song> songs = [];
+    final List<dynamic> songData = json.decode(response.body);
+    print(songData);
+    for (var songData in songData) {
+      songs.add(Song(
+        id: songData['id'],
+        name: songData['name'],
+        numParts: songData['parts'],
+        backingTrackURL: songData['backing_track'],
+      ));
+    }
+    return songs;
+  }
+  else {
+    print("Error fetching songs");
+    throw Exception('Failed to fetch songs');
   }
 }
 
@@ -31,10 +55,12 @@ Future<List<SongPart>> fetchSongParts(String songId) async {
         part: songPartData['part'],
         songId: songPartData['song_id'],
         musicURL: songPartData['music_url'],
+        name: songPartData['name'],
       ));
     }
     return songParts;
   } else {
+    print("Error fetching song parts from server");
     throw Exception('Failed to fetch song parts');
   }
 }

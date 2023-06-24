@@ -7,7 +7,8 @@ import '../models/song.dart';
 import '../widgets/song_part_card.dart';
 
 class SongProjectScreen extends StatefulWidget {
-  const SongProjectScreen({Key? key}) : super(key: key);
+  final String songId;
+  const SongProjectScreen({required this.songId, Key? key}) : super(key: key);
 
   @override
   _SongProjectScreenState createState() => _SongProjectScreenState();
@@ -16,9 +17,10 @@ class SongProjectScreen extends StatefulWidget {
 class _SongProjectScreenState extends State<SongProjectScreen>{
  FileUploader fileUploader = FileUploader();
   List<Widget> songPartCards = [];
+  List<String> recordedParts = [];
   List<String> filePaths = [];
   List<SongPart> songParts = [];
-  Song song = Song(id: '', name: '', numParts: 0);
+
   bool initLoading = true;
   bool failedConnection = false;
   bool uploadingFiles = false;
@@ -26,31 +28,14 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
   @override
   void initState() {
     super.initState();
-    _fetchSong();
     _fetchSongParts();
   }
 
-  // function to fetch the song from the server
-  void _fetchSong() async {
-    try {
-      Song fetchedSong = await fetchSong("123");
-      setState(() {
-        song = fetchedSong;
-      });
-    }
-    catch (e) {
-      setState(() {
-        initLoading = false;
-        failedConnection = true;
-      });
-      print(e);
-    }
-  }
 
   // function to fetch the song parts from the server
   void _fetchSongParts() async {
     try {
-      List<SongPart> fetchedSongParts = await fetchSongParts("123");
+      List<SongPart> fetchedSongParts = await fetchSongParts(widget.songId);
       setState(() {
         songParts = fetchedSongParts;
         songPartCards = _buildSongPartCards();
@@ -58,32 +43,35 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
       });
     }
     catch (e) {
-      print("oeirgoeirjgo");
       setState(() {
         initLoading = false;
         failedConnection = true;
       });
-       print(e);
+       print("Error in _fetchSongParts(): $e");
    }
+
   }
 
   // function to build the song part cards
-  void setFilePath(String path, int fileNumber) {
+  void setFilePath(String partId, String filePath) {
     setState(() {
-      filePaths[fileNumber -1] = path;
+      recordedParts.add(partId);
+      filePaths.add(filePath);
       songPartCards = _buildSongPartCards();
     });
   }
 
   // function to navigator push to the camera screen
-  void _navigateToCameraScreen(int fileNumber) {
+  void _navigateToCameraScreen(String partId, String musicURL) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) =>
           CameraFromScratch(
-            fileURL: songParts[fileNumber - 1].musicURL,
-            fileNumber: fileNumber,
-            setFilePath: setFilePath,)),
+            musicUrl: musicURL,
+            partId: partId,
+            setFilePath: setFilePath,
+          )
+      ),
     );
   }
 
@@ -102,10 +90,12 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
 
   //function to check if the files in filepaths are null
   _checkFiles(index) {
-    if (filePaths[index] != '') {
+    if (recordedParts.contains(songParts[index].id)){
       return false;
     }
-    return true;
+    else {
+      return true;
+    }
   }
 
   // a function which will be used to create a list of SongPartCard widgets contaning the data in the songparts list
@@ -113,12 +103,16 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
     List<Widget> songPartCards = [];
     for (var i = 0; i < songParts.length; i++) {
       filePaths.add('');
+
       songPartCards.add(
           SongPartCard(
-              fileNumber: songParts[i].part,
-              title: songParts[i].id,
+              partId: songParts[i].id,
+              songId: songParts[i].songId,
+              partNumber: songParts[i].part,
+              name: songParts[i].name,
+              musicUrl: songParts[i].musicURL,
               navigateToCameraScreen: _navigateToCameraScreen,
-              isRecorded: _checkFiles(i),
+              isRecorded: _checkFiles(i)
           )
       );
     }
@@ -129,7 +123,7 @@ class _SongProjectScreenState extends State<SongProjectScreen>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(song.name),
+        title: Text("Record your song"),
       ),
       body:
           // if the connection failed, display a message

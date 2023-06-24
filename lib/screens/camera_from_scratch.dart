@@ -6,10 +6,10 @@ import 'package:video_player/video_player.dart';
 import 'dart:io';
 
 class CameraFromScratch extends StatefulWidget {
-  final void Function(String path, int fileNum) setFilePath;
-  final int fileNumber;
-  final String fileURL;
-  const CameraFromScratch({required this.fileURL, required this.setFilePath, required this.fileNumber, Key? key}) : super(key: key);
+  final void Function(String partId, String filePath) setFilePath;
+  final String partId;
+  final String musicUrl;
+  const CameraFromScratch({required this.musicUrl, required this.setFilePath, required this.partId, Key? key}) : super(key: key);
 
   @override
 _CameraFromScratchState createState() => _CameraFromScratchState();}
@@ -31,7 +31,7 @@ class _CameraFromScratchState extends State<CameraFromScratch> {
   void initState() {
 
     super.initState();
-    _videoController = VideoPlayerController.network(widget.fileURL)
+    _videoController = VideoPlayerController.network(widget.musicUrl)
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {
@@ -62,13 +62,6 @@ class _CameraFromScratchState extends State<CameraFromScratch> {
     _controller?.dispose();
     _videoController.dispose();
     super.dispose();
-  }
-
-  //function to get the path of the video file
-  Future<String> _getVideoFilePath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/recorded_video_${widget.fileNumber}.mp4';
-    return filePath;
   }
 
   //function to start the video recording
@@ -105,9 +98,9 @@ class _CameraFromScratchState extends State<CameraFromScratch> {
       final XFile videoFile = await cameraController.stopVideoRecording();
       if (videoFile != null) {
         final String documentsPath = (await getApplicationDocumentsDirectory()).path;
-        final String videoPath = '$documentsPath/videonumber_${widget.fileNumber}.mp4';
+        final String videoPath = '$documentsPath/${widget.partId}.mp4';
         await videoFile.saveTo(videoPath);
-        widget.setFilePath(videoPath, widget.fileNumber);
+        widget.setFilePath(widget.partId, videoPath);
         print('Video saved to: $videoPath');
         Navigator.pop(context);
       }

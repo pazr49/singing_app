@@ -8,14 +8,20 @@ import '../screens/camera_from_scratch.dart';
 
 // a stateful widget called SongPartCard which will be used to create a card widget
 class SongPartCard extends StatefulWidget {
-  final String title;
-  final int fileNumber;
+  final String partId;
+  final String name;
+  final int partNumber;
+  final String songId;
+  final String musicUrl;
   final Function navigateToCameraScreen;
   final bool isRecorded;
   const SongPartCard(
       {
-        required this.title,
-        required this.fileNumber,
+        required this.partId,
+        required this.name,
+        required this.partNumber,
+        required this.songId,
+        required this.musicUrl,
         required this.navigateToCameraScreen,
         required this.isRecorded,
         Key? key}) : super(key: key);
@@ -41,7 +47,7 @@ class _SongPartCardState extends State<SongPartCard> {
           children: <Widget>[
              ListTile(
               leading: Icon(Icons.album),
-              title: Text(widget.title),
+              title: Text(widget.name),
               subtitle: widget.isRecorded ? Text("Start your recording"): Text("Completed"),
             ),
             Row(
@@ -51,7 +57,7 @@ class _SongPartCardState extends State<SongPartCard> {
                   child: widget.isRecorded ? Text("Record Video", style: TextStyle(color: Colors.red)) :
                     Text("Re-record Video"),
                   onPressed: () {
-                    widget.navigateToCameraScreen(widget.fileNumber);
+                    widget.navigateToCameraScreen(widget.partId, widget.musicUrl);
                   },
                 ),
                 const SizedBox(width: 8),

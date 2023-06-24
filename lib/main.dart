@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/select_song_screen.dart';
 import 'package:my_app/screens/song_project_screen.dart';
 
 void main() {
@@ -13,6 +14,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SongProjectScreen();
+    return SelectSongScreen();
   }
 }
